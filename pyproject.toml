@@ -1,0 +1,16 @@
+[project]
+name = "openevalz-eval-cybench"
+version = "0.1.0"
+description = "OpenEvalz packaging of Cybench: Capture-The-Flag Cybersecurity Challenges"
+license = { text = "BUSL-1.1" }
+requires-python = ">=3.10"
+dependencies = [
+  "inspect-ai==0.3.260",
+  "trusted-router>=0.7.0",
+  "pyyaml>=6",
+]
+
+[tool.openevalz]
+eval = "cybench"
+execution_class = "sandbox-k8s"
+cost_class = "high"

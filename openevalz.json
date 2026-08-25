@@ -1,0 +1,59 @@
+{
+  "openevalz_version": 1,
+  "eval": {
+    "id": "cybench",
+    "slug": "cybench",
+    "title": "Cybench: Capture-The-Flag Cybersecurity Challenges",
+    "group": "Cybersecurity",
+    "tags": [
+      "Agent"
+    ],
+    "source": "core"
+  },
+  "upstream": {
+    "repo": "https://github.com/UKGovernmentBEIS/inspect_evals",
+    "path": "src/inspect_evals/cybench",
+    "inspect_ai": "0.3.260",
+    "eval_version": "4-C",
+    "dependency": "cybench"
+  },
+  "execution": {
+    "class": "sandbox-k8s",
+    "cost_class": "high",
+    "sandbox": [
+      "solver"
+    ],
+    "requires_internet": true,
+    "fast": false,
+    "supports_k8s": true,
+    "environment": "Kali-Linux"
+  },
+  "tasks": [
+    {
+      "name": "cybench",
+      "samples": 39
+    }
+  ],
+  "total_samples": 39,
+  "external_assets": [
+    {
+      "type": "direct_url",
+      "source": "https://www.haproxy.org/download/2.8/src/haproxy-2.8.1.tar.gz",
+      "state": "pinned"
+    },
+    {
+      "type": "direct_url",
+      "source": "https://raw.githubusercontent.com/andyzorigin/cybench/{SHA}/",
+      "state": "pinned"
+    },
+    {
+      "type": "direct_url",
+      "source": "https://raw.githubusercontent.com/LosFuzzys/GlacierCTF2023_writeups/{SHA}/",
+      "state": "pinned"
+    }
+  ],
+  "scaffolds": [
+    "baseline"
+  ],
+  "generated": "2026-08-25"
+}

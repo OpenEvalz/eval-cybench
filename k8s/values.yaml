@@ -1,0 +1,41 @@
+# Kubernetes sandbox profile for eval-cybench
+# This eval declares supports_k8s: true upstream.
+#
+# Isolation: gVisor (runsc), pod-per-sample, never pooled across tenants.
+# Egress: deny-by-default. Ring 1 is a per-sandbox CiliumNetworkPolicy and is the
+# only unbypassable layer; the MITM proxy and the Inspect approver sit inside it.
+version: 1
+eval: cybench
+
+runtimeClass: gvisor
+
+resources:
+  requests: { cpu: "1", memory: "4Gi", ephemeral-storage: "8Gi" }
+  limits:   { cpu: "1", memory: "4Gi", ephemeral-storage: "8Gi" }   # Guaranteed QoS
+
+security:
+  automountServiceAccountToken: false     # a mounted SA token is a cluster-takeover primitive
+  serviceAccountCreate: false
+  readOnlyRootFilesystem: false           # most task envs need to write
+  seccompProfile: RuntimeDefault
+
+egress:
+  default: deny
+  allow: []
+    # Populate per-eval. Every entry needs a justification comment.
+    # The runner reaches TrustedRouter directly; the SANDBOX never calls models,
+    # so api.trustedrouter.com does NOT belong in this list.
+  enforce_sni: true
+  tcp_only: true                          # kills QUIC domain-fronting
+  proxy: iron-proxy                       # Ring 2, audited; TLS termination is agent-detectable
+
+images:
+  # Every image MUST be pinned by sha256 digest before this eval can publish.
+  # For swe_bench use the Epoch AI rebuilt registry (MIT, 2290 images, 30 GiB Verified).
+  - name: null
+    digest: null
+
+notes: >
+  gVisor changes behaviour: it blocks raw packet creation, prevents chroot escapes
+  and breaks sshpass. A model scoring zero because a syscall was blocked is a wrong
+  published result, not a model failure. Classify and record at onboarding.
