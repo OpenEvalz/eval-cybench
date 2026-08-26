@@ -96,12 +96,29 @@ jobs:
           print("redaction policy ok")
           PY
 
-      - name: k8s profile parses and pins images
+      - name: k8s profile pins gVisor and denies egress by default
         run: |
           python - <<'PY'
           import yaml
           v = yaml.safe_load(open('k8s/values.yaml'))
-          assert v['runtimeClass'] == 'gvisor'
-          assert v['egress']['default'] == 'deny'
-          print('k8s profile ok')
+          assert v['runtimeClass'] == 'gvisor', f"runtimeClass is {v.get('runtimeClass')!r}, not gvisor"
+
+          # Egress comes in two shapes. Most profiles are flat:
+          #     egress: {default: deny, allow: [...]}
+          # Profiles that distinguish a recording pass from a replay pass nest one
+          # block per mode:
+          #     egress: {record: {default: deny, ...}, replay: {default: deny, ...}}
+          # The old check assumed the flat shape and died with KeyError: 'default' on
+          # the nested one — failing the profile for being MORE carefully specified.
+          # Assert what actually matters: every mode present denies by default.
+          egress = v['egress']
+          modes = ({'flat': egress} if 'default' in egress
+                   else {k: m for k, m in egress.items() if isinstance(m, dict)})
+          assert modes, "egress declares no mode with a default"
+          for name, mode in modes.items():
+              assert 'default' in mode, f"egress mode {name!r} has no default"
+              assert mode['default'] == 'deny', (
+                  f"egress mode {name!r} defaults to {mode['default']!r}, not deny"
+              )
+          print("k8s profile ok:", ", ".join(sorted(modes)), "all default-deny")
           PY
